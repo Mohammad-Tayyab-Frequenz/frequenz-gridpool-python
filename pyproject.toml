@@ -32,7 +32,7 @@ dependencies = [
   "marshmallow >= 3.18.0, < 5",
   "marshmallow-dataclass >= 8.7.1, < 9",
   "typing-extensions >= 4.14.1, < 5",
-  "frequenz-microgrid-component-graph >= 0.5.0, < 0.6",
+  "frequenz-microgrid-component-graph >= 0.6.0, < 0.7",
   "frequenz-client-assets >= 0.5.0, < 0.6",
 ]
 dynamic = ["version"]

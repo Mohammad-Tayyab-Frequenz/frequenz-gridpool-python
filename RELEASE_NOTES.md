@@ -13,7 +13,10 @@
 
 ## New Features
 
-<!-- Here goes the main new features and examples or instructions on how to use them -->
+- Resolve the `AC_ENERGY_ACTIVE`, `AC_ENERGY_ACTIVE_CONSUMED`, and
+  `AC_ENERGY_ACTIVE_DELIVERED` formulas to `AC_POWER_ACTIVE` when no explicit
+  energy formula is configured. This avoids duplicating topology formulas in
+  generated microgrid configuration.
 
 ## Bug Fixes
 

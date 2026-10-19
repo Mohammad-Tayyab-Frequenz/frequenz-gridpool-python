@@ -233,9 +233,10 @@ def _derive_component_configs(
     """Build the component-type configs for a microgrid from its graph.
 
     Derives, per component type, the `AC_POWER_ACTIVE` formula and the
-    meter/inverter/component ID lists straight from the component graph. A
-    component type only appears in the result if the graph yields a non-zero
-    formula or at least one ID for it.
+    meter/inverter/component ID lists straight from the component graph. Active
+    energy metrics reuse the active-power formula at lookup time. A component
+    type only appears in the result if the graph yields a non-zero formula or
+    at least one ID for it.
 
     Args:
         graph:

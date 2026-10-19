@@ -19,6 +19,15 @@ ComponentType = Literal["grid", "pv", "battery", "consumption", "chp", "ev"]
 ComponentCategory = Literal["meter", "inverter", "component"]
 """Valid component categories."""
 
+_POWER_FORMULA_METRIC = "AC_POWER_ACTIVE"
+_ENERGY_FORMULA_METRICS = frozenset(
+    {
+        "AC_ENERGY_ACTIVE",
+        "AC_ENERGY_ACTIVE_CONSUMED",
+        "AC_ENERGY_ACTIVE_DELIVERED",
+    }
+)
+
 
 @dataclass
 class ComponentTypeConfig:
@@ -40,6 +49,31 @@ class ComponentTypeConfig:
         """Set the default formula if none is provided."""
         self.formula = self.formula or {}
 
+    def formula_for_metric(self, metric: str) -> str | None:
+        """Get a formula for a metric, falling back to active power for energy.
+
+        Explicit formulas always take precedence.  The component IDs and
+        operations of the generated active-power formula also apply to the
+        active-energy metrics, so they do not need to be stored redundantly.
+
+        Args:
+            metric: Metric name of the formula.
+
+        Returns:
+            The explicitly configured formula, or the active-power formula for
+            an active-energy metric that has no explicit formula.
+
+        Raises:
+            ValueError: If the formulas are not configured as a dictionary.
+        """
+        if not isinstance(self.formula, dict):
+            raise ValueError("Formula must be a dictionary.")
+
+        formula = self.formula.get(metric)
+        if not formula and metric in _ENERGY_FORMULA_METRICS:
+            formula = self.formula.get(_POWER_FORMULA_METRIC)
+        return formula
+
     def cids(self, metric: str = "") -> list[int]:
         """Get component IDs for this component.
 
@@ -58,14 +92,12 @@ class ComponentTypeConfig:
             ValueError: If the metric is not supported or improperly set.
         """
         if metric:
-            if not isinstance(self.formula, dict):
-                raise ValueError("Formula must be a dictionary.")
-            formula = self.formula.get(metric)
+            formula = self.formula_for_metric(metric)
             if not formula:
                 raise ValueError(f"{metric} does not have a formula")
             # Extract component IDs from the formula which are given as e.g. #123
             pattern = r"#(\d+)"
-            return [int(e) for e in re.findall(pattern, self.formula[metric])]
+            return [int(e) for e in re.findall(pattern, formula)]
 
         return self._default_cids()
 
@@ -267,7 +299,7 @@ class MicrogridConfig:
             raise ValueError(f"{component_type} not found in config.")
         if cfg.formula is None:
             raise ValueError(f"No formula set for {component_type}")
-        formula = cfg.formula.get(metric)
+        formula = cfg.formula_for_metric(metric)
         if not formula:
             raise ValueError(f"{component_type} is missing formula for {metric}")
 

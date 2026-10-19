@@ -105,6 +105,12 @@ def test_microgrid_config_component_type_ids(
         305,
         306,
     ]
+    assert valid_microgrid_config.component_type_ids(
+        "pv", metric="AC_ENERGY_ACTIVE"
+    ) == [
+        12,
+        23,
+    ]
 
     with pytest.raises(ValueError):
         valid_microgrid_config.component_type_ids("unknown")
@@ -113,6 +119,15 @@ def test_microgrid_config_component_type_ids(
 def test_microgrid_config_formula(valid_microgrid_config: MicrogridConfig) -> None:
     """Test retrieval of formula for a given component type and metric."""
     assert valid_microgrid_config.formula("pv", "AC_POWER_ACTIVE") == "#12+#23"
+    for metric in (
+        "AC_ENERGY_ACTIVE",
+        "AC_ENERGY_ACTIVE_CONSUMED",
+        "AC_ENERGY_ACTIVE_DELIVERED",
+    ):
+        assert valid_microgrid_config.formula("pv", metric) == "#12+#23"
+
+    valid_microgrid_config.ctype["pv"].formula["AC_ENERGY_ACTIVE"] = "#34"
+    assert valid_microgrid_config.formula("pv", "AC_ENERGY_ACTIVE") == "#34"
 
     with pytest.raises(ValueError):
         valid_microgrid_config.formula("pv", "INVALID_METRIC")
